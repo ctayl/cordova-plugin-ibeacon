@@ -58,7 +58,7 @@
             </feature>
         </config-file>
 
-        <config-file target="*-Info.plist" parent="NSLocationAlwaysUsageDescription">
+        <!-- <config-file target="*-Info.plist" parent="NSLocationAlwaysUsageDescription">
             <string>This app would like to scan for iBeacons even when in the background.</string>
         </config-file>
         <config-file target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription">
@@ -72,7 +72,22 @@
         </config-file>
         <config-file target="*-Info.plist" parent="NSLocationAlwaysAndWhenInUseUsageDescription">
             <string>This app would like to scan for iBeacons both while in use and while in the background.</string>
-        </config-file>
+        </config-file> -->
+        <edit-config file="*-Info.plist" mode="overwrite" target="NSLocationAlwaysUsageDescription">
+            <string>This app would like to scan for iBeacons even when in the background.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="overwrite" target="NSLocationWhenInUseUsageDescription">
+            <string>This app would like to scan for iBeacons while it is in use.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="overwrite" target="NSBluetoothPeripheralUsageDescription">
+            <string>This app would like to scan for iBeacons.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="overwrite" target="NSBluetoothAlwaysUsageDescription">
+            <string>This app would like to scan for iBeacons.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="overwrite" target="NSLocationAlwaysAndWhenInUseUsageDescription">
+            <string>This app would like to scan for iBeacons both while in use and while in the background.</string>
+        </edit-config>
 
         <header-file src="src/ios/CDVLocationManager.h"/>
         <source-file src="src/ios/CDVLocationManager.m"/>
