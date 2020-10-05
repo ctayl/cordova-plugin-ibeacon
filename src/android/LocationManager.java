@@ -42,6 +42,8 @@ import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.startup.RegionBootstrap;
+import org.altbeacon.beacon.startup.BootstrapNotifier;
 
 import org.altbeacon.beacon.BeaconTransmitter;
 import android.bluetooth.le.AdvertiseCallback;
@@ -77,6 +79,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
     public static final String TAG = "com.unarin.beacon";
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    private static final int PERMISSION_ACCESS_BACKGROUND_LOCATION = 1;
     private static final String FOREGROUND_BETWEEN_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundBetweenScanPeriod";
     private static final String FOREGROUND_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundScanPeriod";
     private static final int DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD = 0;
@@ -133,6 +136,10 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
         iBeaconManager = BeaconManager.getInstanceForApplication(cordovaActivity);
         iBeaconManager.setForegroundBetweenScanPeriod(foregroundBetweenScanPeriod);
         iBeaconManager.setForegroundScanPeriod(foregroundScanPeriod);
+
+        Region region = new Region("buildfire",
+                null, null, null);
+        regionBootstrap = new RegionBootstrap(this, region);
 
         final int sampleExpirationMilliseconds = this.preferences.getInteger(
                 SAMPLE_EXPIRATION_MILLISECOND, DEFAULT_SAMPLE_EXPIRATION_MILLISECOND);
@@ -327,8 +334,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
                     try {
                         requestPermissionsMethod.invoke(activity,
-                                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                PERMISSION_REQUEST_COARSE_LOCATION
+                                new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                PERMISSION_ACCESS_BACKGROUND_LOCATION
                         );
                     } catch (IllegalAccessException e) {
                         Log.e(TAG, "IllegalAccessException while requesting permission for " +
