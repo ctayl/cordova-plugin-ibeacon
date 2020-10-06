@@ -15,7 +15,7 @@ public class CordovaRegionBootstrap extends Application implements BootstrapNoti
 
 				BeaconManager beaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
 
-				Region region = new Region("backgroundRegion",
+				Region region = new Region("buildfire",
                 null, null, null);
         regionBootstrap = new RegionBootstrap(this, region);
     }
