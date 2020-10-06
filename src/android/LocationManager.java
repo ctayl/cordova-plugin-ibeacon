@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+import java.security.InvalidKeyException;]
 
 import org.altbeacon.beacon.*;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
