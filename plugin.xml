@@ -137,7 +137,7 @@
         <source-file src="src/android/BackgroundBeaconService.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/StartupBroadcastReceiver.java" target-dir="src/com/unarin/cordova/beacon" />~
 
-		<source-file src="libs/android/altbeacon.jar" target-dir="libs" framework="true" />
+		<!-- <source-file src="libs/android/altbeacon.jar" target-dir="libs" framework="true" /> -->
     </platform>
 
 </plugin>
