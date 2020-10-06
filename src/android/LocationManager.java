@@ -42,8 +42,6 @@ import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
-import org.altbeacon.beacon.startup.RegionBootstrap;
-import org.altbeacon.beacon.startup.BootstrapNotifier;
 
 import org.altbeacon.beacon.BeaconTransmitter;
 import android.bluetooth.le.AdvertiseCallback;
@@ -54,6 +52,8 @@ import org.altbeacon.beacon.Identifier;
 import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.startup.RegionBootstrap;
+import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.beacon.service.ArmaRssiFilter;
 import org.altbeacon.beacon.service.RangedBeacon;
@@ -136,10 +136,6 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
         iBeaconManager = BeaconManager.getInstanceForApplication(cordovaActivity);
         iBeaconManager.setForegroundBetweenScanPeriod(foregroundBetweenScanPeriod);
         iBeaconManager.setForegroundScanPeriod(foregroundScanPeriod);
-
-        Region region = new Region("buildfire",
-                null, null, null);
-        regionBootstrap = new RegionBootstrap(this, region);
 
         final int sampleExpirationMilliseconds = this.preferences.getInteger(
                 SAMPLE_EXPIRATION_MILLISECOND, DEFAULT_SAMPLE_EXPIRATION_MILLISECOND);
