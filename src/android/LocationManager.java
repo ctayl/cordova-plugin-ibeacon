@@ -21,6 +21,7 @@ import java.security.InvalidKeyException;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.lang.reflect.Method;
 
 import org.altbeacon.beacon.*;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
@@ -39,6 +40,7 @@ import org.json.JSONObject;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -47,6 +49,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
@@ -82,6 +85,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
     private static final String REQUEST_BT_PERMISSION_NAME = "com.unarin.cordova.beacon.android.altbeacon.RequestBtPermission";
     private static final boolean DEFAULT_REQUEST_BT_PERMISSION = true;
     private static final int DEFAULT_FOREGROUND_SCAN_PERIOD = 1100;
+    private static final int BUILD_VERSION_CODES_M = 23;
     /**
      * Constructor.
      */
@@ -139,7 +143,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
     	super.onDestroy();
     }
 
-       @TargetApi(BUILD_VERSION_CODES_M)
+    @TargetApi(BUILD_VERSION_CODES_M)
     private void tryToRequestMarshmallowLocationPermission() {
 
         if (Build.VERSION.SDK_INT < BUILD_VERSION_CODES_M) {
