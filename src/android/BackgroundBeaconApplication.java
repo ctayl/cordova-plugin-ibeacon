@@ -22,7 +22,7 @@ public class BackgroundBeaconApplication extends Application implements Bootstra
 	private RegionBootstrap regionBootstrap;
 
 	public void onCreate() {
-		Log.d("com.unarin.cordova.beacon", "BACKGROUND: Creating BackgroundBeaconApplication.");
+		Log.w("com.unarin.cordova.beacon", "BACKGROUND: Creating BackgroundBeaconApplication.");
 		super.onCreate();
 		// Simply constructing this class and holding a reference to it
 		// enables auto battery saving of about 60%
@@ -41,21 +41,21 @@ public class BackgroundBeaconApplication extends Application implements Bootstra
 
 		Region region = new Region("backgroundRegion", Identifier.parse("02424C49-5350-4F00-9DBF-3F5307B1159A"), null, null);
 		regionBootstrap = new RegionBootstrap(this, region);
-		Log.d("com.unarin.cordova.beacon", "BACKGROUND: Created RegionBootstrap in BackgroundBeaconApplication.");
+		Log.w("com.unarin.cordova.beacon", "BACKGROUND: Created RegionBootstrap in BackgroundBeaconApplication.");
 	}
 
 	@Override
 	public void didEnterRegion(Region region) {
-		Log.d("com.unarin.cordova.beacon", "BackgroundBeaconApplication.didEnterRegion called!");
+		Log.w("com.unarin.cordova.beacon", "BackgroundBeaconApplication.didEnterRegion called!");
 	}
 
 	@Override
 	public void didExitRegion(Region region) {
-		Log.d("com.unarin.cordova.beacon", "BackgroundBeaconApplication.didExitRegion called!");
+		Log.w("com.unarin.cordova.beacon", "BackgroundBeaconApplication.didExitRegion called!");
 	}
 
 	@Override
 	public void didDetermineStateForRegion(int i, Region region) {
-		Log.d("com.unarin.cordova.beacon", "BackgroundBeaconApplication.didDetermineStateForRegion called!");
+		Log.w("com.unarin.cordova.beacon", "BackgroundBeaconApplication.didDetermineStateForRegion called!");
 	}
 }
