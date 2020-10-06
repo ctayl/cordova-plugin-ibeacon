@@ -74,8 +74,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 	private BroadcastReceiver broadcastReceiver; 
 	private BluetoothAdapter bluetoothAdapter;
 
-    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
+    private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2
     private static final String FOREGROUND_BETWEEN_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundBetweenScanPeriod";
     private static final String FOREGROUND_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundScanPeriod";
     private static final int DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD = 0;
@@ -197,7 +197,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
                     try {
                         requestPermissionsMethod.invoke(activity,
-                                new String[]{Manifest.permission.PERMISSION_REQUEST_FINE_LOCATION},
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                                 PERMISSION_REQUEST_FINE_LOCATION
                         );
                     } catch (IllegalAccessException e) {
