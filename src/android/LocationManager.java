@@ -74,6 +74,9 @@ import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.altbeacon.beacon.startup.RegionBootstrap;
+import org.altbeacon.beacon.startup.BootstrapNotifier;
+
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
