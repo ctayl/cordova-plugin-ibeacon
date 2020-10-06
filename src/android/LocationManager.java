@@ -70,7 +70,18 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 	private BroadcastReceiver broadcastReceiver; 
 	private BluetoothAdapter bluetoothAdapter;
 
-
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
+    private static final String FOREGROUND_BETWEEN_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundBetweenScanPeriod";
+    private static final String FOREGROUND_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundScanPeriod";
+    private static final int DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD = 0;
+    private static final String SAMPLE_EXPIRATION_MILLISECOND = "com.unarin.cordova.beacon.android.altbeacon.SampleExpirationMilliseconds";
+    private static final int DEFAULT_SAMPLE_EXPIRATION_MILLISECOND = 20000;
+    private static final String ENABLE_ARMA_FILTER_NAME = "com.unarin.cordova.beacon.android.altbeacon.EnableArmaFilter";
+    private static final boolean DEFAULT_ENABLE_ARMA_FILTER = false;
+    private static final String REQUEST_BT_PERMISSION_NAME = "com.unarin.cordova.beacon.android.altbeacon.RequestBtPermission";
+    private static final boolean DEFAULT_REQUEST_BT_PERMISSION = true;
+    private static final int DEFAULT_FOREGROUND_SCAN_PERIOD = 1100;
     /**
      * Constructor.
      */
@@ -104,6 +115,12 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
         }
         //TODO AddObserver when page loaded
 
+        final boolean requestPermission = this.preferences.getBoolean(
+            REQUEST_BT_PERMISSION_NAME, DEFAULT_REQUEST_BT_PERMISSION);
+           
+        if(requestPermission)
+            tryToRequestMarshmallowLocationPermission();
+
     }
     
     /**
@@ -120,6 +137,100 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
     	}*/
 
     	super.onDestroy();
+    }
+
+       @TargetApi(BUILD_VERSION_CODES_M)
+    private void tryToRequestMarshmallowLocationPermission() {
+
+        if (Build.VERSION.SDK_INT < BUILD_VERSION_CODES_M) {
+            Log.i(TAG, "tryToRequestMarshmallowLocationPermission() skipping because API code is " +
+                    "below criteria: " + String.valueOf(Build.VERSION.SDK_INT));
+            return;
+        }
+
+        final Activity activity = cordova.getActivity();
+
+        final Method checkSelfPermissionMethod = getCheckSelfPermissionMethod();
+
+        if (checkSelfPermissionMethod == null) {
+            Log.e(TAG, "Could not obtain the method Activity.checkSelfPermission method. Will " +
+                    "not check for ACCESS_COARSE_LOCATION even though we seem to be on a " +
+                    "supported version of Android.");
+            return;
+        }
+
+        try {
+
+            final Integer permissionCheckResult = (Integer) checkSelfPermissionMethod.invoke(
+                    activity, Manifest.permission.ACCESS_FINE_LOCATION);
+
+            Log.i(TAG, "Permission check result for ACCESS_FINE_LOCATION: " +
+                    String.valueOf(permissionCheckResult));
+
+            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                Log.i(TAG, "Permission for ACCESS_FINE_LOCATION has already been granted.");
+                return;
+            }
+
+            final Method requestPermissionsMethod = getRequestPermissionsMethod();
+
+            if (requestPermissionsMethod == null) {
+                Log.e(TAG, "Could not obtain the method Activity.requestPermissions. Will " +
+                        "not ask for ACCESS_FINE_LOCATION even though we seem to be on a " +
+                        "supported version of Android.");
+                return;
+            }
+
+            final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle("This app needs location access");
+            builder.setMessage("Please grant location access so this app can detect beacons.");
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @SuppressLint("NewApi")
+                @Override
+                public void onDismiss(final DialogInterface dialog) {
+
+                    try {
+                        requestPermissionsMethod.invoke(activity,
+                                new String[]{Manifest.permission.PERMISSION_REQUEST_FINE_LOCATION},
+                                PERMISSION_REQUEST_FINE_LOCATION
+                        );
+                    } catch (IllegalAccessException e) {
+                        Log.e(TAG, "IllegalAccessException while requesting permission for " +
+                                "ACCESS_FINE_LOCATION:", e);
+                    } catch (InvocationTargetException e) {
+                        Log.e(TAG, "InvocationTargetException while requesting permission for " +
+                                "ACCESS_FINE_LOCATION:", e);
+                    }
+                }
+            });
+
+            builder.show();
+
+        } catch (final IllegalAccessException e) {
+            Log.w(TAG, "IllegalAccessException while checking for ACCESS_COARSE_LOCATION:", e);
+        } catch (final InvocationTargetException e) {
+            Log.w(TAG, "InvocationTargetException while checking for ACCESS_COARSE_LOCATION:", e);
+        }
+    }
+
+    private Method getCheckSelfPermissionMethod() {
+        try {
+            return Activity.class.getMethod("checkSelfPermission", String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Method getRequestPermissionsMethod() {
+        try {
+            final Class[] parameterTypes = {String[].class, int.class};
+
+            return Activity.class.getMethod("requestPermissions", parameterTypes);
+
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 
