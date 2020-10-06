@@ -39,6 +39,7 @@ import org.json.JSONObject;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
