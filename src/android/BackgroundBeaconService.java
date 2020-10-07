@@ -30,7 +30,7 @@ public class BackgroundBeaconService extends Service implements BootstrapNotifie
 	private RegionBootstrap regionBootstrap;
 
 	public void onCreate() {
-		Log.d("com.unarin.cordova.beacon", "BACKGROUND: Creating BackgroundBeaconService.");
+		Log.w("com.unarin.cordova.beacon", "BACKGROUND: Creating BackgroundBeaconService.");
 		super.onCreate();
 		iBeaconManager = BeaconManager.getInstanceForApplication(this);
 		iBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
@@ -43,26 +43,26 @@ public class BackgroundBeaconService extends Service implements BootstrapNotifie
 
 		Region region = new Region("backgroundRegion", Identifier.parse("02424C49-5350-4F00-9DBF-3F5307B1159A"), null, null);
 		regionBootstrap = new RegionBootstrap(this, region);
-		Log.d("com.unarin.cordova.beacon", "BACKGROUND: Created RegionBootstrap in BackgroundBeaconService.");
+		Log.w("com.unarin.cordova.beacon", "BACKGROUND: Created RegionBootstrap in BackgroundBeaconService.");
 	}
 
 	public void onDestroy(){
-		Log.d("com.unarin.cordova.beacon", "Destroying BackgroundBeaconService");
+		Log.w("com.unarin.cordova.beacon", "Destroying BackgroundBeaconService");
 	}
 
 	@Override
 	public void didEnterRegion(Region region) {
-		Log.d("com.unarin.cordova.beacon", "BackgroundBeaconService.didEnterRegion called!");
+		Log.w("com.unarin.cordova.beacon", "BackgroundBeaconService.didEnterRegion called!");
 	}
 
 	@Override
 	public void didExitRegion(Region region) {
-		Log.d("com.unarin.cordova.beacon", "BackgroundBeaconService.didExitRegion called!");
+		Log.w("com.unarin.cordova.beacon", "BackgroundBeaconService.didExitRegion called!");
 	}
 
 	@Override
 	public void didDetermineStateForRegion(int i, Region region) {
-		Log.d("com.unarin.cordova.beacon", "BackgroundBeaconService.didDetermineStateForRegion called!");
+		Log.w("com.unarin.cordova.beacon", "BackgroundBeaconService.didDetermineStateForRegion called!");
 	}
 
 	@Override
