@@ -1,4 +1,4 @@
-package com.e2bfbb675eb7.www;
+package com.ibeaconbg.www;
 
 import android.app.Application;
 import android.app.Notification;
@@ -12,9 +12,10 @@ import static android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT;
 import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
 
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.Parcel;
-import android.telecom.Call;
 import android.util.Log;
 
 import com.unarin.cordova.beacon.LocationManager;
@@ -27,24 +28,10 @@ import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 import org.apache.cordova.CallbackContext;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import de.appplant.cordova.plugin.localnotification.LocalNotification;
-import de.appplant.cordova.plugin.localnotification.TriggerReceiver;
-import de.appplant.cordova.plugin.notification.Manager;
-import de.appplant.cordova.plugin.notification.Options;
-import de.appplant.cordova.plugin.notification.Request;
-
-import java.io.ObjectOutputStream;
-import java.sql.Array;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class Main extends Application implements BootstrapNotifier {
@@ -67,12 +54,8 @@ public class Main extends Application implements BootstrapNotifier {
         _callbackContext = callbackContext;
     }
 
-    public static final String uniqueId_key = "nameKey";
-    public static final String id1_key = "identifier1";
-    public static final String id2_key = "identifier2";
-    public static final String id3_key = "identifier3";
-        Set<String> regions;
-//    Set<String> regions = new HashSet<String>();
+
+    Set<String> regions;
     SharedPreferences sharedpreferences;
 
 
@@ -81,22 +64,11 @@ public class Main extends Application implements BootstrapNotifier {
     public void onCreate() {
         super.onCreate();
 
-        Log.w(TAG, "onCreate");
         sharedpreferences = getSharedPreferences("iBeacon_preferences", 0);
         sInstance = this;
 
         setScanningPreferences();
         reinitialize();
-
-        // store last known UUID(s)
-//        Identifier id1 = Identifier.parse("02424C49-5350-4F00-9DBF-3F5307B1159A");
-//        Identifier id2 = major!=null ? Identifier.parse(major) : null;
-//        Identifier id3 = minor!=null ? Identifier.parse(minor) : null;
-
-        // wake up the app when a beacon is seen
-//        Region region = new Region("buildfire",
-//                id1, null, null);
-//        regionBootstrap = new RegionBootstrap(this, region);
 
         // This reduces bluetooth power usage by about 60%
 				// backgroundPowerSaver = new BackgroundPowerSaver(this);
@@ -110,7 +82,21 @@ public class Main extends Application implements BootstrapNotifier {
         beaconManager.setDebug(true);
 
         Notification.Builder builder = new Notification.Builder(this);
-        builder.setSmallIcon(R.drawable.icon);
+        Context context = getApplicationContext();
+        String packageName = context.getPackageName();
+
+        try {
+            PackageManager manager = getPackageManager();
+            Resources resources = manager.getResourcesForApplication(packageName);
+            int resId = resources.getIdentifier("icon", "drawable", packageName);
+
+            Drawable myDrawable = resources.getDrawable(resId);
+
+            builder.setSmallIcon(resId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         builder.setContentTitle("Scanning for Beacons");
         Intent intent = new Intent(this, MainCordovaActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -171,36 +157,11 @@ public class Main extends Application implements BootstrapNotifier {
                 }
                 index++;
             }
-            Region newRegion = new Region(uniqueIdentifier, identifier1, identifier2, identifier3);
+            Region newRegion = new Region(uniqueIdentifier + "_" + identifier1, identifier1, identifier2, identifier3);
             regionList.add(newRegion);
         }
 
         regionBootstrap = new RegionBootstrap(this, regionList);
-
-
-//        String uniqueIdentifier = sharedpreferences.getString(uniqueId_key, "");
-//        String identifier1 = sharedpreferences.getString(id1_key, "");
-//        String identifier2 = sharedpreferences.getString(id2_key, "");
-//        String identifier3 = sharedpreferences.getString(id3_key, "");
-
-
-
-//        Map allPreferences = sharedpreferences.getAll();
-//
-//        Object keys = allPreferences.keySet().toArray();
-//        Log.w(TAG, keys.toString());
-
-//        if ((uniqueIdentifier != "") && (identifier1 != "")) {
-//            Log.w(TAG, "Identified cached region!");
-//
-//            Identifier id1 = Identifier.parse(identifier1);
-//            Identifier id2 = identifier2 != "" ? Identifier.parse(identifier2) : null;
-//            Identifier id3 = identifier3 != "" ? Identifier.parse(identifier3) : null;
-//
-//            // fetch region data from cache
-//            Region region = new Region(uniqueIdentifier, id1, id2, id3);
-//            regionBootstrap = new RegionBootstrap(this, region);
-//        }
     }
 
     public String parseRegion(Region region) {
@@ -262,11 +223,8 @@ public class Main extends Application implements BootstrapNotifier {
         }
     }
 
-    //Object notificationManager;
-
     @Override
     public void didEnterRegion(Region region) {
-        Log.w(TAG, "Main.didEnterRegion:CALLED");
 
         MainCordovaActivity mainCordovaActivity =  MainCordovaActivity.getInstance();
 
@@ -280,7 +238,6 @@ public class Main extends Application implements BootstrapNotifier {
 
     @Override
     public void didExitRegion(Region region) {
-        Log.w(TAG, "Main.didExitRegion:CALLED");
 
         MainCordovaActivity mainCordovaActivity =  MainCordovaActivity.getInstance();
 
@@ -296,24 +253,13 @@ public class Main extends Application implements BootstrapNotifier {
 
         MainCordovaActivity mainCordovaActivity =  MainCordovaActivity.getInstance();
 
-        if (mainCordovaActivity != null) {
-            Log.w(TAG, "mainCordovaActivity is defined");
-            if (_callbackContext != null) {
-                Log.w(TAG, "_callbackContext is defined");
-                LocationManager.getInstance().dispatchMonitorState("didDetermineStateForRegion", state, region, _callbackContext);
-            } else {
-                Log.w(TAG, "_callbackContext is NOT defined");
-            }
-//            LocationManager.didDetermineStateForRegionProxy(state, region);
-        } else {
-            Log.w(TAG, "mainCordovaActivity is NOT defined");
+        if (mainCordovaActivity != null && _callbackContext != null) {
+            LocationManager.getInstance().dispatchMonitorState("didDetermineStateForRegion", state, region, _callbackContext);
         }
     }
 
 
     private void sendNotification(String eventType, int state, Region region) {
-
-        // use local notification
 
         NotificationManager notificationManager =
                 (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -327,48 +273,29 @@ public class Main extends Application implements BootstrapNotifier {
             channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             notificationManager.createNotificationChannel(channel);
             builder = new Notification.Builder(this, channel.getId());
-        }
-        else {
+        } else {
             builder = new Notification.Builder(this);
             builder.setPriority(Notification.PRIORITY_HIGH);
         }
 
-//        BeaconProxy beaconProxy = new BeaconProxy(eventType, state, region);
-//        String data = beaconProxy.getData();
-
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-//        Intent intent =  new Intent(this, MainCordovaActivity.class);
 
         Context context = getApplicationContext();
         String pkgName  = context.getPackageName();
-//
+
         Intent intent = context
                 .getPackageManager()
                 .getLaunchIntentForPackage(pkgName);
-//
+
         intent.addFlags(FLAG_ACTIVITY_REORDER_TO_FRONT | FLAG_ACTIVITY_SINGLE_TOP);
-//        context.startActivity(intent);
-//        intent.putExtra("cdvStartInBackground", true);
+
         Log.w(TAG, String.valueOf(region));
         intent.putExtra("eventType", eventType);
         intent.putExtra("state", state);
         intent.putExtra("mUniqueId", region.getUniqueId());
         intent.putExtra("id1", region.getId1().toString());
-//        intent.putExtra("id2", region.getId2());
-//        intent.putExtra("id3", region.getId3());
-        intent.putExtra("region", String.valueOf(region));
-
-//        JSONObject regionJson = new JSONObject();
-//        try {
-//            regionJson.put("mUniqueId", region.getUniqueId());
-//            regionJson.put("id1", region.getId1());
-//            regionJson.put("id2", region.getId2());
-//            regionJson.put("id3", region.getId3());
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-
-//        intent.putExtra("region", regionJson);
+        intent.putExtra("id2", region.getId2());
+        intent.putExtra("id3", region.getId3());
 
         stackBuilder.addNextIntent(intent);
         PendingIntent resultPendingIntent =
@@ -376,7 +303,16 @@ public class Main extends Application implements BootstrapNotifier {
                         0,
                         PendingIntent.FLAG_UPDATE_CURRENT
                 );
-        builder.setSmallIcon(R.drawable.icon);
+        try {
+            PackageManager manager = getPackageManager();
+            Resources resources = manager.getResourcesForApplication(pkgName);
+            int resId = resources.getIdentifier("icon", "drawable", pkgName);
+
+            builder.setSmallIcon(resId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         builder.setContentTitle("I detect a beacon");
         builder.setContentText("Tap here to see details in the reference app");
         builder.setContentIntent(resultPendingIntent);

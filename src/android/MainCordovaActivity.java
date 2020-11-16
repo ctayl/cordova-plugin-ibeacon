@@ -17,7 +17,7 @@
        under the License.
  */
 
-package com.e2bfbb675eb7.www;
+package com.ibeaconbg.www;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -54,7 +54,6 @@ public class MainCordovaActivity extends CordovaActivity
 
     private static String eventType;
     private static int state;
-    private static String region;
     private static Region parsedRegion;
 
     @Override
@@ -71,53 +70,48 @@ public class MainCordovaActivity extends CordovaActivity
         }
 
         if (extras != null) {
-            Log.w(TAG, extras.getString("region"));
-            Log.w(TAG, extras.getString("eventType"));
-            Log.w(TAG, extras.getString("eventType"));
-            Log.w(TAG, extras.getString("id1"));
-
             eventType = extras.getString("eventType");
             state = extras.getInt("state");
-            region = extras.getString("region");
+
+            Log.w(TAG, String.valueOf(state));
+
             String mUniqueId = extras.getString("mUniqueId");
-            String id1 = extras.getString("id1");
+            Identifier uuid = extras.getString("id1") instanceof String ? Identifier.parse(extras.getString("id1")) : null;
+            Identifier id2 = extras.getString("id2") instanceof String ? Identifier.parse(extras.getString("id2")) : null;
+            Identifier id3 = extras.getString("id3") instanceof String ? Identifier.parse(extras.getString("id3")) : null;
 
-            Identifier uuid = Identifier.parse(id1);
-//            Identifier id2 = Identifier.parse(extras.getString("id2"));
-//            Identifier id3 = Identifier.parse(extras.getString("id3"));
-
-            parsedRegion = new Region(mUniqueId, uuid, null, null);
+            parsedRegion = new Region(mUniqueId, uuid, id2, id3);
         }
 
         // Set by <content src="index.html" /> in config.xml
         loadUrl(launchUrl);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-
-            } else {
-                if (!this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                            PERMISSION_REQUEST_FINE_LOCATION);
-                }
-                else {
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle("Functionality limited");
-                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
-                    builder.setPositiveButton(android.R.string.ok, null);
-                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                        }
-
-                    });
-                    builder.show();
-                }
-
-            }
-        }
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+//                    == PackageManager.PERMISSION_GRANTED) {
+//
+//            } else {
+//                if (!this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+//                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+//                            PERMISSION_REQUEST_FINE_LOCATION);
+//                }
+//                else {
+//                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                    builder.setTitle("Functionality limited");
+//                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
+//                    builder.setPositiveButton(android.R.string.ok, null);
+//                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//
+//                        @Override
+//                        public void onDismiss(DialogInterface dialog) {
+//                        }
+//
+//                    });
+//                    builder.show();
+//                }
+//
+//            }
+//        }
     }
 
     public static MainCordovaActivity getInstance() {
@@ -125,25 +119,9 @@ public class MainCordovaActivity extends CordovaActivity
     }
 
     public static void onInit() {
-        Log.w(TAG, "onInitialize");
-//        webView = LocationManager.getWebView();
-
-        if (eventType != null && parsedRegion != null ) {
-
-            Log.w(TAG, region);
-
-            Main.getInstance().didDetermineStateForRegion(1, parsedRegion);
+        if (eventType != null && parsedRegion != null) {
+            Log.e(TAG, "CALLING ON INIT");
+            Main.getInstance().didDetermineStateForRegion(state, parsedRegion);
         }
-    }
-
-    private static synchronized void sendJavascript(final String js) {
-
-        final CordovaWebView view = webView.get();
-
-        ((Activity)(view.getContext())).runOnUiThread(new Runnable() {
-            public void run() {
-                view.loadUrl("javascript:" + js);
-            }
-        });
     }
 }

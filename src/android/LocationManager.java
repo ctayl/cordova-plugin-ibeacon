@@ -60,8 +60,8 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.e2bfbb675eb7.www.Main;
-import com.e2bfbb675eb7.www.MainCordovaActivity;
+import com.ibeaconbg.www.Main;
+import com.ibeaconbg.www.MainCordovaActivity;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class LocationManager extends CordovaPlugin implements BeaconConsumer {
@@ -779,6 +779,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 		});
 	}
 
+	private Boolean initialized = false;
+
 	private void startMonitoringForRegion(final JSONObject arguments, final CallbackContext callbackContext) {
 
 		_handleCallSafely(callbackContext, new ILocationManagerCommand() {
@@ -795,7 +797,12 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 					PluginResult result = new PluginResult(PluginResult.Status.OK);
 					result.setKeepCallback(true);
 					beaconServiceNotifier.didStartMonitoringForRegion(region);
-					MainCordovaActivity.onInit();
+
+					if (!initialized) {
+						MainCordovaActivity.onInit();
+						initialized = true;
+					}
+
 					return result;
 				} catch (Exception e) {
 					Log.e(TAG, "'startMonitoringForRegion' exception "+e.getCause());
