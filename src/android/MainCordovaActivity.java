@@ -114,6 +114,12 @@ public class MainCordovaActivity extends CordovaActivity
 //        }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        sInstance = null;
+    }
+
     public static MainCordovaActivity getInstance() {
         return MainCordovaActivity.sInstance;
     }
