@@ -19,11 +19,19 @@
 
 package com.ibeaconbg.www;
 
+import android.app.NotificationManager;
+import android.content.SharedPreferences;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import org.altbeacon.beacon.Identifier;
 import org.altbeacon.beacon.Region;
 import org.apache.cordova.*;
+
+import java.util.HashSet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainCordovaActivity extends CordovaActivity
 {
@@ -33,9 +41,22 @@ public class MainCordovaActivity extends CordovaActivity
     private static int state;
     private static Region parsedRegion;
 
+    Context context;
+    SharedPreferences sharedpreferences;
+
+    private static ScheduledExecutorService scheduledTaskExecutor;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        context = getApplicationContext();
+        try {
+            NotificationManager notificationManager =
+                    (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         sInstance = this;
 
@@ -47,23 +68,36 @@ public class MainCordovaActivity extends CordovaActivity
 
 
         try {
-            if (extras != null) {
-                eventType = extras.getString("eventType");
-                state = extras.getInt("state");
+            sharedpreferences = context.getSharedPreferences("iBeacon_hits", 0);
 
-                Log.e(TAG, String.valueOf(state));
+            String mUniqueId = sharedpreferences.getString("mUniqueId", "null");
+            String id1 = sharedpreferences.getString("uuid", "null");
+            String id2 = sharedpreferences.getString("id2", "null");
+            String id3 = sharedpreferences.getString("id3", "null");
 
-                String mUniqueId = extras.getString("mUniqueId") instanceof String ? extras.getString("mUniqueId") : null;
-                Identifier uuid = extras.getString("id1") != null ? Identifier.parse(extras.getString("id1")) : null;
-                Identifier id2 = extras.getString("id2") != null ? Identifier.parse(extras.getString("id2")) : null;
-                Identifier id3 = extras.getString("id3") != null ? Identifier.parse(extras.getString("id3")) : null;
+            eventType = sharedpreferences.getString("eventType", "null");
+            state = sharedpreferences.getInt("state", -1);
 
-                if (mUniqueId != null) {
-                    parsedRegion = new Region(mUniqueId, uuid, id2, id3);
-                } else {
-                    Log.e(TAG, "Invalid Region! Ignoring.");
-                }
+            if (mUniqueId != "null" && eventType != "null" && state > -1) {
+                Log.e(TAG, mUniqueId);
+                Identifier uuid = !id1.equals("null") ? Identifier.parse(id1) : null;
+                Identifier major = !id2.equals("null")? Identifier.parse(id2) : null;;
+                Identifier minor = !id3.equals("null") ? Identifier.parse(id3) : null;;
+
+                parsedRegion = new Region(mUniqueId, uuid, major, minor);
             }
+
+            SharedPreferences.Editor editor = sharedpreferences.edit();
+
+            editor.putString("eventType", null);
+            editor.putString("mUniqueId", null);
+            editor.putString("uuid", null);
+            editor.putString("id2", null);
+            editor.putString("id3", null);
+            editor.putInt("state", -1);
+
+            editor.commit();
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -83,8 +117,22 @@ public class MainCordovaActivity extends CordovaActivity
     }
 
     public static void onInit() {
-        if (eventType != null && parsedRegion != null) {
-            Main.getInstance().didDetermineStateForRegion(state, parsedRegion);
-        }
+        ScheduledExecutorService scheduledTaskExecutor =
+                Executors.newScheduledThreadPool(5);
+
+        scheduledTaskExecutor.schedule(new Runnable() {
+            public void run() {
+                Log.e(TAG, "onInit");
+                try {
+                    if (eventType != null && parsedRegion != null) {
+                        Log.e(TAG, eventType);
+                        Main.getInstance().didDetermineStateForRegion(state, parsedRegion);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 1000, TimeUnit.MILLISECONDS);
     }
 }

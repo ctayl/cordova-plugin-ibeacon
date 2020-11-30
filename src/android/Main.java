@@ -14,7 +14,6 @@ import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Log;
 
@@ -28,11 +27,11 @@ import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.BootstrapNotifier;
 import org.altbeacon.beacon.startup.RegionBootstrap;
 import org.apache.cordova.CallbackContext;
-import java.util.ArrayList;
+
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
+
 
 public class Main extends Application implements BootstrapNotifier {
     private static final String TAG = "BeaconReferenceApp";
@@ -54,9 +53,10 @@ public class Main extends Application implements BootstrapNotifier {
         _callbackContext = callbackContext;
     }
 
-
+    Context context;
     Set<String> regions;
     SharedPreferences sharedpreferences;
+    SharedPreferences ibeaconHits;
 
 
     private BeaconManager beaconManager;
@@ -64,11 +64,18 @@ public class Main extends Application implements BootstrapNotifier {
     public void onCreate() {
         super.onCreate();
 
-        sharedpreferences = getSharedPreferences("iBeacon_preferences", 0);
+
+        context = getApplicationContext();
+
+        sharedpreferences = context.getSharedPreferences("iBeacon_preferences", 0);
+        ibeaconHits = context.getSharedPreferences("iBeacon_hits", 0);
         sInstance = this;
 
         setScanningPreferences();
-        reinitialize();
+
+        if (!(MainCordovaActivity.getInstance() instanceof MainCordovaActivity)) {
+            reinitialize();
+        }
 
         // This reduces bluetooth power usage by about 60%
 				// backgroundPowerSaver = new BackgroundPowerSaver(this);
@@ -79,14 +86,13 @@ public class Main extends Application implements BootstrapNotifier {
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser().
                 setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
-        beaconManager.setDebug(true);
+        beaconManager.setDebug(false);
         try {
-
-//            beaconManager.setBeaconSimulator(new TimedBeaconSimulator());
-//            ((TimedBeaconSimulator) beaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
+            beaconManager.setBeaconSimulator(new TimedBeaconSimulator());
+            ((TimedBeaconSimulator) beaconManager.getBeaconSimulator()).createTimedSimulatedBeacons();
 
             Notification.Builder builder = new Notification.Builder(this);
-            Context context = getApplicationContext();
+
             String packageName = context.getPackageName();
 
             PackageManager manager = getPackageManager();
@@ -120,8 +126,6 @@ public class Main extends Application implements BootstrapNotifier {
 
     private void reinitialize() {
         try {
-            List<Region> regionList = new ArrayList<Region>();
-
             regions = sharedpreferences.getStringSet("regions", new HashSet<String>());
 
             Iterator value = regions.iterator();
@@ -157,13 +161,36 @@ public class Main extends Application implements BootstrapNotifier {
                     }
                     index++;
                 }
+
                 Region newRegion = new Region(uniqueIdentifier, identifier1, identifier2, identifier3);
-                regionList.add(newRegion);
+
+                startMonitoringForRegion(newRegion);
+
             }
 
-            regionBootstrap = new RegionBootstrap(this, regionList);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+//            SharedPreferences.Editor editor = sharedpreferences.edit();
+//
+//            editor.putStringSet("regions", null);
+//            editor.commit();
+//
+//            ScheduledExecutorService scheduledTaskExecutor =
+//                    Executors.newScheduledThreadPool(5);
+//
+//            scheduledTaskExecutor.schedule(new Runnable() {
+//                public void run() {
+//
+//                    Collection<Region> regions = beaconManager.getMonitoredRegions();
+//
+//                    Iterator value = regions.iterator();
+//                    while (value.hasNext()) {
+//                        Log.e(TAG, "region is" + ":" +value.next().toString());
+//                    }
+//                }
+//            }, 10000, TimeUnit.MILLISECONDS);
+
         }
     }
 
@@ -181,24 +208,33 @@ public class Main extends Application implements BootstrapNotifier {
 
     public void startMonitoringForRegion(Region region) {
         try {
-            String entry = parseRegion(region);
+            Log.e(TAG, "startMonitoringForRegion");
+            Log.e(TAG, region.getId1().toString());
             SharedPreferences.Editor editor = sharedpreferences.edit();
 
             regions = sharedpreferences.getStringSet("regions", new HashSet<String>());
 
+            Region uniqueRegion = new Region(region.getUniqueId(), region.getId1(), region.getId2(), region.getId3());
+            String entry = parseRegion(uniqueRegion);
+
+
             if (!regions.contains(entry)) {
                 regions.add(entry);
+
+                editor.clear();
+                editor.putStringSet("regions", regions);
+                editor.commit();
             }
 
-            editor.clear();
-            editor.putStringSet("regions", regions);
-            editor.commit();
+
+
 
             if (regionBootstrap != null) {
-                regionBootstrap.addRegion(region);
+                regionBootstrap.addRegion(uniqueRegion);
             } else {
-                regionBootstrap = new RegionBootstrap(this, region);
+                regionBootstrap = new RegionBootstrap(this, uniqueRegion);
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -212,7 +248,6 @@ public class Main extends Application implements BootstrapNotifier {
 
             regions = sharedpreferences.getStringSet("regions", new HashSet<String>());
             if (regions.contains(entry)) {
-                Log.e(TAG, "removed region!");
                 regions.remove(entry);
             }
 
@@ -223,6 +258,8 @@ public class Main extends Application implements BootstrapNotifier {
             if (regionBootstrap != null) {
                 regionBootstrap.removeRegion(region);
             }
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -270,9 +307,24 @@ public class Main extends Application implements BootstrapNotifier {
         }
     }
 
+    private void setRegionData(String eventType, int state, Region region) {
+        SharedPreferences.Editor editor = ibeaconHits.edit();
+
+        editor.putString("eventType", eventType);
+        editor.putString("mUniqueId", region.getUniqueId());
+        editor.putString("uuid", region.getId1() != null ? region.getId1().toString() : "null");
+        editor.putString("id2", region.getId2() != null ? region.getId2().toString() : "null");
+        editor.putString("id3", region.getId3() != null ? region.getId3().toString() : "null");
+        editor.putInt("state", state);
+
+        editor.commit();
+    }
+
 
     private void sendNotification(String eventType, int state, Region region) {
         try {
+            setRegionData(eventType, state, region);
+
             NotificationManager notificationManager =
                     (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -292,7 +344,6 @@ public class Main extends Application implements BootstrapNotifier {
 
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
 
-            Context context = getApplicationContext();
             String pkgName = context.getPackageName();
 
             Intent intent = context
@@ -301,26 +352,12 @@ public class Main extends Application implements BootstrapNotifier {
 
             intent.addFlags(FLAG_ACTIVITY_REORDER_TO_FRONT | FLAG_ACTIVITY_SINGLE_TOP);
 
-            intent.putExtra("eventType", eventType);
-            intent.putExtra("state", state);
-            intent.putExtra("mUniqueId", region.getUniqueId());
-            intent.putExtra("id1", region.getId1() != null ? region.getId1().toString() : null);
-            intent.putExtra("id2", region.getId2() != null ? region.getId2().toString() : null);
-            intent.putExtra("id3", region.getId3() != null ? region.getId3().toString() : null);
-
-            Log.e(TAG, eventType);
-            Log.e(TAG, String.valueOf(state));
-            Log.e(TAG, region.getUniqueId());
-            Log.e(TAG, region.getId1() != null ? region.getId1().toString() : "null");
-            Log.e(TAG, region.getId2() != null ? region.getId2().toString() : "null");
-            Log.e(TAG, region.getId3() != null ? region.getId3().toString() : "null");
-
             stackBuilder.addNextIntent(intent);
             PendingIntent resultPendingIntent =
-                    stackBuilder.getPendingIntent(
-                            0,
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                    );
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
             try {
                 PackageManager manager = getPackageManager();
                 Resources resources = manager.getResourcesForApplication(pkgName);

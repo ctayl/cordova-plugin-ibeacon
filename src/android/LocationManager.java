@@ -806,6 +806,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 					return result;
 				} catch (Exception e) {
 					Log.e(TAG, "'startMonitoringForRegion' exception "+e.getCause());
+					e.printStackTrace();
 					beaconServiceNotifier.monitoringDidFailForRegion(region, e);
 					return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
 				}

@@ -127,6 +127,7 @@
 
         <source-file src="src/android/Main.java" target-dir="com/ibeaconbg/www" />
         <source-file src="src/android/MainCordovaActivity.java" target-dir="com/ibeaconbg/www" />
+        <source-file src="src/android/TimedBeaconSimulator.java" target-dir="com/ibeaconbg/www" />
 
         <source-file src="src/android/LocationManager.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/IBeaconServiceNotifier.java" target-dir="src/com/unarin/cordova/beacon" />
