@@ -792,7 +792,10 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 				try {
 					region = parseRegion(arguments);
 
-					Main.getInstance().startMonitoringForRegion(region);
+					String title = arguments.has("title")&&!arguments.isNull("title") ? arguments.getString("title") : null;
+					String message = arguments.has("message")&&!arguments.isNull("message") ? arguments.getString("message") : null;
+
+					Main.getInstance().startMonitoringForRegion(region, title, message);
 
 					PluginResult result = new PluginResult(PluginResult.Status.OK);
 					result.setKeepCallback(true);
@@ -1206,7 +1209,6 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 		Identifier id3 = minor!=null ? Identifier.parse(minor) : null;
 		return new Region(identifier, id1, id2, id3);
 	}
-
 
 	private String nameOfRegionState(int state) {
 		switch (state) {

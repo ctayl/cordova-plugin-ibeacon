@@ -71,6 +71,11 @@ public class Main extends Application implements BootstrapNotifier {
         ibeaconHits = context.getSharedPreferences("iBeacon_hits", 0);
         sInstance = this;
 
+//                    SharedPreferences.Editor editor = sharedpreferences.edit();
+//
+//            editor.putStringSet("regions", null);
+//            editor.commit();
+
         setScanningPreferences();
 
         if (!(MainCordovaActivity.getInstance() instanceof MainCordovaActivity)) {
@@ -107,9 +112,9 @@ public class Main extends Application implements BootstrapNotifier {
             );
             builder.setContentIntent(pendingIntent);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                NotificationChannel channel = new NotificationChannel("My Notification Channel ID",
-                        "My Notification Name", NotificationManager.IMPORTANCE_DEFAULT);
-                channel.setDescription("My Notification Channel Description");
+                NotificationChannel channel = new NotificationChannel("iBeaconNotifications",
+                        "iBeacon Scanning", NotificationManager.IMPORTANCE_DEFAULT);
+                channel.setDescription("Scanning for iBeacons");
                 NotificationManager notificationManager = (NotificationManager) getSystemService(
                         Context.NOTIFICATION_SERVICE);
                 notificationManager.createNotificationChannel(channel);
@@ -138,6 +143,8 @@ public class Main extends Application implements BootstrapNotifier {
                 Identifier identifier1 = null;
                 Identifier identifier2 = null;
                 Identifier identifier3 = null;
+                String title = "";
+                String message = "";
 
                 for (String identifier : array1) {
                     Log.w(TAG, identifier);
@@ -158,13 +165,19 @@ public class Main extends Application implements BootstrapNotifier {
                             identifier3 = !identifier.equals("NULL") ? Identifier.parse(identifier) : null;
                             break;
                         }
+                        case 4: {
+                            title = identifier;
+                        }
+                        case 5: {
+                            message = identifier;
+                        }
                     }
                     index++;
                 }
 
                 Region newRegion = new Region(uniqueIdentifier, identifier1, identifier2, identifier3);
 
-                startMonitoringForRegion(newRegion);
+                startMonitoringForRegion(newRegion, title, message);
 
             }
 
@@ -194,19 +207,21 @@ public class Main extends Application implements BootstrapNotifier {
         }
     }
 
-    public String parseRegion(Region region) {
+    public String serializeRegion(Region region, String title, String message) {
         String entry = "";
         entry += (region.getUniqueId() + ",");
         entry += ((region.getId1() != null ? region.getId1().toString() : "NULL") + ",");
         entry += ((region.getId2() != null ? region.getId2().toString() : "NULL") + ",");
-        entry += (region.getId3() != null ? region.getId3().toString() : "NULL");
+        entry += (region.getId3() != null ? region.getId3().toString() : "NULL") + ",";
+        entry += (title != null ? title : "NULL") + ",";
+        entry += message != null ? message : "NULL";
         entry += "";
 
         return entry;
     }
 
 
-    public void startMonitoringForRegion(Region region) {
+    public void startMonitoringForRegion(Region region, String title, String message) {
         try {
             Log.e(TAG, "startMonitoringForRegion");
             Log.e(TAG, region.getId1().toString());
@@ -214,9 +229,7 @@ public class Main extends Application implements BootstrapNotifier {
 
             regions = sharedpreferences.getStringSet("regions", new HashSet<String>());
 
-            Region uniqueRegion = new Region(region.getUniqueId(), region.getId1(), region.getId2(), region.getId3());
-            String entry = parseRegion(uniqueRegion);
-
+            String entry = serializeRegion(region, title, message);
 
             if (!regions.contains(entry)) {
                 regions.add(entry);
@@ -226,13 +239,10 @@ public class Main extends Application implements BootstrapNotifier {
                 editor.commit();
             }
 
-
-
-
             if (regionBootstrap != null) {
-                regionBootstrap.addRegion(uniqueRegion);
+                regionBootstrap.addRegion(region);
             } else {
-                regionBootstrap = new RegionBootstrap(this, uniqueRegion);
+                regionBootstrap = new RegionBootstrap(this, region);
             }
 
         } catch (Exception e) {
@@ -244,7 +254,7 @@ public class Main extends Application implements BootstrapNotifier {
         try {
             SharedPreferences.Editor editor = sharedpreferences.edit();
 
-            String entry = parseRegion(region);
+            String entry = serializeRegion(region, null, null);
 
             regions = sharedpreferences.getStringSet("regions", new HashSet<String>());
             if (regions.contains(entry)) {
@@ -330,8 +340,8 @@ public class Main extends Application implements BootstrapNotifier {
 
             Notification.Builder builder;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                NotificationChannel channel = new NotificationChannel("Beacon Reference Notifications",
-                        "Beacon Reference Notifications", NotificationManager.IMPORTANCE_HIGH);
+                NotificationChannel channel = new NotificationChannel("iBeacon_results",
+                        "iBeacon Results", NotificationManager.IMPORTANCE_HIGH);
                 channel.enableLights(true);
                 channel.enableVibration(true);
                 channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
@@ -368,8 +378,33 @@ public class Main extends Application implements BootstrapNotifier {
                 e.printStackTrace();
             }
 
-            builder.setContentTitle("I detect a beacon");
-            builder.setContentText("Tap here to see the details");
+            String notificationTitle = "Beacon detected";
+            String notificationMessage = "Tap here to open the app";
+
+            regions = sharedpreferences.getStringSet("regions", new HashSet<String>());
+
+            Iterator value = regions.iterator();
+            while (value.hasNext()) {
+                String csv[] = value.next().toString().split(",");
+
+                String identifier = csv[0];
+                String uuid = csv[1];
+
+                if (region.getUniqueId().equals(identifier) && region.getId1().toString().equals(uuid)) {
+
+                    String title = csv[4];
+                    String message = csv[5];
+
+                    if (!title.equals("NULL") && !message.equals("NULL")) {
+                        notificationTitle = title;
+                        notificationMessage = message;
+                    }
+                }
+
+            }
+
+            builder.setContentTitle(notificationTitle);
+            builder.setContentText(notificationMessage);
             builder.setContentIntent(resultPendingIntent);
             notificationManager.notify(1, builder.build());
         } catch (Exception e) {
