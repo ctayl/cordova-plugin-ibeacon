@@ -80,18 +80,9 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 	private BroadcastReceiver broadcastReceiver;
 	private BluetoothAdapter bluetoothAdapter;
 
-	private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
-	private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
-	private static final String FOREGROUND_BETWEEN_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundBetweenScanPeriod";
-	private static final String FOREGROUND_SCAN_PERIOD_NAME = "com.unarin.cordova.beacon.android.altbeacon.ForegroundScanPeriod";
-	private static final int DEFAULT_FOREGROUND_BETWEEN_SCAN_PERIOD = 0;
-	private static final String SAMPLE_EXPIRATION_MILLISECOND = "com.unarin.cordova.beacon.android.altbeacon.SampleExpirationMilliseconds";
-	private static final int DEFAULT_SAMPLE_EXPIRATION_MILLISECOND = 20000;
-	private static final String ENABLE_ARMA_FILTER_NAME = "com.unarin.cordova.beacon.android.altbeacon.EnableArmaFilter";
-	private static final boolean DEFAULT_ENABLE_ARMA_FILTER = false;
+	private static final int PERMISSION_ALL = 1;
 	private static final String REQUEST_BT_PERMISSION_NAME = "com.unarin.cordova.beacon.android.altbeacon.RequestBtPermission";
 	private static final boolean DEFAULT_REQUEST_BT_PERMISSION = true;
-	private static final int DEFAULT_FOREGROUND_SCAN_PERIOD = 1100;
 	private static final int BUILD_VERSION_CODES_M = 23;
 	/**
 	 * Constructor.
@@ -128,9 +119,6 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
 		debugEnabled = true;
 
-		// //Start BackgroundBeaconService.
-		// Intent startServiceIntent = new Intent(this.getApplicationContext(), BackgroundBeaconService.class);
-		// this.getApplicationContext().startService(startServiceIntent);
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
 			initBluetoothAdapter();
@@ -151,12 +139,6 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 	@Override
 	public void onDestroy() {
 		debugLog("Activity being Destroyed.");
-    	/*iBeaconManager.unbind(this);
-
-    	if (broadcastReceiver != null) {
-    		cordova.getActivity().unregisterReceiver(broadcastReceiver);
-    		broadcastReceiver = null;
-    	}*/
 
 		super.onDestroy();
 	}
@@ -214,8 +196,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
 					try {
 						requestPermissionsMethod.invoke(activity,
-								new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-								PERMISSION_REQUEST_FINE_LOCATION
+								new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+								PERMISSION_ALL
 						);
 					} catch (IllegalAccessException e) {
 						Log.e(TAG, "IllegalAccessException while requesting permission for " +
