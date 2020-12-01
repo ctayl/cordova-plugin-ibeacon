@@ -41,6 +41,7 @@ public class MainCordovaActivity extends CordovaActivity
     private static int state;
     private static Region parsedRegion;
 
+
     Context context;
     SharedPreferences sharedpreferences;
 
@@ -79,7 +80,6 @@ public class MainCordovaActivity extends CordovaActivity
             state = sharedpreferences.getInt("state", -1);
 
             if (mUniqueId != "null" && eventType != "null" && state > -1) {
-                Log.e(TAG, mUniqueId);
                 Identifier uuid = !id1.equals("null") ? Identifier.parse(id1) : null;
                 Identifier major = !id2.equals("null")? Identifier.parse(id2) : null;;
                 Identifier minor = !id3.equals("null") ? Identifier.parse(id3) : null;;
@@ -122,10 +122,8 @@ public class MainCordovaActivity extends CordovaActivity
 
         scheduledTaskExecutor.schedule(new Runnable() {
             public void run() {
-                Log.e(TAG, "onInit");
                 try {
                     if (eventType != null && parsedRegion != null) {
-                        Log.e(TAG, eventType);
                         Main.getInstance().didDetermineStateForRegion(state, parsedRegion);
                     }
 
@@ -133,6 +131,6 @@ public class MainCordovaActivity extends CordovaActivity
                     e.printStackTrace();
                 }
             }
-        }, 1000, TimeUnit.MILLISECONDS);
+        }, 2500, TimeUnit.MILLISECONDS);
     }
 }

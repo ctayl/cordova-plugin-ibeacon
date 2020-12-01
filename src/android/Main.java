@@ -71,11 +71,6 @@ public class Main extends Application implements BootstrapNotifier {
         ibeaconHits = context.getSharedPreferences("iBeacon_hits", 0);
         sInstance = this;
 
-//                    SharedPreferences.Editor editor = sharedpreferences.edit();
-//
-//            editor.putStringSet("regions", null);
-//            editor.commit();
-
         setScanningPreferences();
 
         if (!(MainCordovaActivity.getInstance() instanceof MainCordovaActivity)) {
@@ -147,7 +142,6 @@ public class Main extends Application implements BootstrapNotifier {
                 String message = "";
 
                 for (String identifier : array1) {
-                    Log.w(TAG, identifier);
                     switch (index) {
                         case 0: {
                             uniqueIdentifier = identifier;
@@ -183,27 +177,6 @@ public class Main extends Application implements BootstrapNotifier {
 
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-//            SharedPreferences.Editor editor = sharedpreferences.edit();
-//
-//            editor.putStringSet("regions", null);
-//            editor.commit();
-//
-//            ScheduledExecutorService scheduledTaskExecutor =
-//                    Executors.newScheduledThreadPool(5);
-//
-//            scheduledTaskExecutor.schedule(new Runnable() {
-//                public void run() {
-//
-//                    Collection<Region> regions = beaconManager.getMonitoredRegions();
-//
-//                    Iterator value = regions.iterator();
-//                    while (value.hasNext()) {
-//                        Log.e(TAG, "region is" + ":" +value.next().toString());
-//                    }
-//                }
-//            }, 10000, TimeUnit.MILLISECONDS);
-
         }
     }
 
@@ -223,8 +196,6 @@ public class Main extends Application implements BootstrapNotifier {
 
     public void startMonitoringForRegion(Region region, String title, String message) {
         try {
-            Log.e(TAG, "startMonitoringForRegion");
-            Log.e(TAG, region.getId1().toString());
             SharedPreferences.Editor editor = sharedpreferences.edit();
 
             regions = sharedpreferences.getStringSet("regions", new HashSet<String>());
@@ -303,14 +274,30 @@ public class Main extends Application implements BootstrapNotifier {
         }
     }
 
+    private Region lastRegion = null;
+    private int lastRegionState = -1;
+
 
     @Override
     public void didDetermineStateForRegion(int state, Region region) {
         try {
             MainCordovaActivity mainCordovaActivity =  MainCordovaActivity.getInstance();
 
+            if (lastRegion != null && lastRegionState > -1) {
+                if (lastRegion.equals(region) && state == lastRegionState) {
+                    lastRegion = null;
+                    lastRegionState = -1;
+                    return;
+                }
+            }
+
+
+
             if (mainCordovaActivity != null && _callbackContext != null) {
                 LocationManager.getInstance().dispatchMonitorState("didDetermineStateForRegion", state, region, _callbackContext);
+
+                lastRegion = region;
+                lastRegionState = state;
             }
         } catch (Exception e) {
             e.printStackTrace();
