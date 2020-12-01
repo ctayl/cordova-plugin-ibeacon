@@ -54,8 +54,8 @@ function BeaconRegion (identifier, uuid, major, minor, notifyEntryStateOnDisplay
     this.major = major;
     this.minor = minor;
     this.notifyEntryStateOnDisplay = notifyEntryStateOnDisplay;
-    this.minor = title;
-    this.minor = message;
+    this.title = title;
+    this.message = message;
 
     this.typeName = 'BeaconRegion';
 };
