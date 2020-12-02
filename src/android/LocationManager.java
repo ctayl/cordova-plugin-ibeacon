@@ -80,7 +80,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 	private BroadcastReceiver broadcastReceiver;
 	private BluetoothAdapter bluetoothAdapter;
 
-	private static final int PERMISSION_ALL = 1;
+	private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
 	private static final String REQUEST_BT_PERMISSION_NAME = "com.unarin.cordova.beacon.android.altbeacon.RequestBtPermission";
 	private static final boolean DEFAULT_REQUEST_BT_PERMISSION = true;
 	private static final int BUILD_VERSION_CODES_M = 23;
@@ -196,8 +196,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
 					try {
 						requestPermissionsMethod.invoke(activity,
-								new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION},
-								PERMISSION_ALL
+								new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+								PERMISSION_REQUEST_FINE_LOCATION
 						);
 					} catch (IllegalAccessException e) {
 						Log.e(TAG, "IllegalAccessException while requesting permission for " +
