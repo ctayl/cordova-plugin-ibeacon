@@ -120,6 +120,7 @@ public class Main extends Application implements BootstrapNotifier {
             beaconManager.setBackgroundBetweenScanPeriod(0);
             beaconManager.setBackgroundScanPeriod(1100);
         } catch (Exception e) {
+            Log.e(TAG, "Main::setScanningPreferences FAILED", e);
             e.printStackTrace();
         }
     }
@@ -176,6 +177,7 @@ public class Main extends Application implements BootstrapNotifier {
             }
 
         } catch (Exception e) {
+            Log.e(TAG, "Main::reinitialize FAILED", e);
             e.printStackTrace();
         }
     }
@@ -196,6 +198,10 @@ public class Main extends Application implements BootstrapNotifier {
 
     public void startMonitoringForRegion(Region region, String title, String message) {
         try {
+            Log.e(TAG, "Main::startMonitoringForRegion CALLED");
+            Log.e(TAG, "region is: " + region.getUniqueId());;
+
+
             SharedPreferences.Editor editor = sharedpreferences.edit();
 
             regions = sharedpreferences.getStringSet("regions", new HashSet<String>());
@@ -203,11 +209,15 @@ public class Main extends Application implements BootstrapNotifier {
             String entry = serializeRegion(region, title, message);
 
             if (!regions.contains(entry)) {
+
                 regions.add(entry);
 
                 editor.clear();
                 editor.putStringSet("regions", regions);
                 editor.commit();
+
+                Log.e(TAG, "cached new region!");
+
             }
 
             if (regionBootstrap != null) {
@@ -217,6 +227,8 @@ public class Main extends Application implements BootstrapNotifier {
             }
 
         } catch (Exception e) {
+            Log.e(TAG, "Main::startMonitoringForRegion FAILED", e);
+
             e.printStackTrace();
         }
     }
@@ -249,6 +261,7 @@ public class Main extends Application implements BootstrapNotifier {
     @Override
     public void didEnterRegion(Region region) {
         try {
+            Log.e(TAG, "Main::didEnterRegion: " + region.getUniqueId());
             MainCordovaActivity mainCordovaActivity =  MainCordovaActivity.getInstance();
 
             if (mainCordovaActivity != null && _callbackContext != null) {
@@ -264,6 +277,8 @@ public class Main extends Application implements BootstrapNotifier {
     @Override
     public void didExitRegion(Region region) {
         try {
+            Log.e(TAG, "Main::didExitRegion: " + region.getUniqueId());
+
             MainCordovaActivity mainCordovaActivity =  MainCordovaActivity.getInstance();
 
             if (mainCordovaActivity != null && _callbackContext != null) {
@@ -281,6 +296,9 @@ public class Main extends Application implements BootstrapNotifier {
     @Override
     public void didDetermineStateForRegion(int state, Region region) {
         try {
+            Log.e(TAG, "Main::didDetermineStateForRegion: " + region.getUniqueId());
+            Log.e(TAG, "state is: : " + (state == 1 ? "INSIDE" : "OUTSIDE"));
+
             MainCordovaActivity mainCordovaActivity =  MainCordovaActivity.getInstance();
 
             if (lastRegion != null && lastRegionState > -1) {
@@ -300,6 +318,8 @@ public class Main extends Application implements BootstrapNotifier {
                 lastRegionState = state;
             }
         } catch (Exception e) {
+            Log.e(TAG, "Main::didDetermineStateForRegion FAILED", e);
+
             e.printStackTrace();
         }
     }
@@ -395,6 +415,8 @@ public class Main extends Application implements BootstrapNotifier {
             builder.setContentIntent(resultPendingIntent);
             notificationManager.notify(1, builder.build());
         } catch (Exception e) {
+            Log.e(TAG, "Main::sendNotification FAILED", e);
+
             e.printStackTrace();
         }
     }

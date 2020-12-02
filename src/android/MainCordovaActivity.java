@@ -79,7 +79,11 @@ public class MainCordovaActivity extends CordovaActivity
             eventType = sharedpreferences.getString("eventType", "null");
             state = sharedpreferences.getInt("state", -1);
 
-            if (mUniqueId != "null" && eventType != "null" && state > -1) {
+            Log.e(TAG, "mUniqueId: " + mUniqueId);
+            Log.e(TAG, "eventType: " + eventType);
+            Log.e(TAG, "state: " + state);
+
+            if (!mUniqueId.equals("null") && !eventType.equals("null") && state > -1) {
                 Identifier uuid = !id1.equals("null") ? Identifier.parse(id1) : null;
                 Identifier major = !id2.equals("null")? Identifier.parse(id2) : null;;
                 Identifier minor = !id3.equals("null") ? Identifier.parse(id3) : null;;
@@ -99,6 +103,7 @@ public class MainCordovaActivity extends CordovaActivity
             editor.commit();
 
         } catch (Exception e) {
+            Log.e(TAG, "MainCordovaActivity::onCreate FAILED", e);
             e.printStackTrace();
         } finally {
             // Set by <content src="index.html" /> in config.xml
@@ -123,11 +128,15 @@ public class MainCordovaActivity extends CordovaActivity
         scheduledTaskExecutor.schedule(new Runnable() {
             public void run() {
                 try {
+                    Log.e(TAG, "MainCordovaActivity::onInit");
                     if (eventType != null && parsedRegion != null) {
+                        Log.e(TAG, "MainCordovaActivity::onInit CALLING => didDetermineStateForRegion");
                         Main.getInstance().didDetermineStateForRegion(state, parsedRegion);
                     }
 
                 } catch (Exception e) {
+                    Log.e(TAG, "MainCordovaActivity::onInit FAILED", e);
+
                     e.printStackTrace();
                 }
             }
