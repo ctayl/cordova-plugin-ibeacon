@@ -27,9 +27,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.altbeacon.beacon.*;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
-import org.altbeacon.beacon.service.BeaconService;
-import org.altbeacon.beacon.startup.BootstrapNotifier;
-import org.altbeacon.beacon.startup.RegionBootstrap;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -44,7 +41,6 @@ import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -79,8 +75,9 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 	//listener for changes in state for system Bluetooth service
 	private BroadcastReceiver broadcastReceiver;
 	private BluetoothAdapter bluetoothAdapter;
+	private android.location.LocationManager locationManager;
 
-	private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
+	private static final int PERMISSION_ALL = 1;
 	private static final String REQUEST_BT_PERMISSION_NAME = "com.unarin.cordova.beacon.android.altbeacon.RequestBtPermission";
 	private static final boolean DEFAULT_REQUEST_BT_PERMISSION = true;
 	private static final int BUILD_VERSION_CODES_M = 23;
@@ -123,6 +120,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
 			initBluetoothAdapter();
 		}
+		initLocationAdapter();
 		//TODO AddObserver when page loaded
 
 		final boolean requestPermission = this.preferences.getBoolean(
@@ -196,8 +194,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
 					try {
 						requestPermissionsMethod.invoke(activity,
-								new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-								PERMISSION_REQUEST_FINE_LOCATION
+								new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+								PERMISSION_ALL
 						);
 					} catch (IllegalAccessException e) {
 						Log.e(TAG, "IllegalAccessException while requesting permission for " +
@@ -297,6 +295,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 			stopAdvertising(callbackContext);
 		} else if (action.equals("isBluetoothEnabled")) {
 			isBluetoothEnabled(callbackContext);
+		} else if (action.equals("isLocationEnabled")) {
+			isLocationEnabled(callbackContext);
 		} else if (action.equals("enableBluetooth")) {
 			enableBluetooth(callbackContext);
 		} else if (action.equals("disableBluetooth")) {
@@ -320,6 +320,12 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 		Activity activity = cordova.getActivity();
 		BluetoothManager bluetoothManager = (BluetoothManager) activity.getSystemService(Context.BLUETOOTH_SERVICE);
 		bluetoothAdapter = bluetoothManager.getAdapter();
+	}
+
+	private void initLocationAdapter() {
+		Activity activity = cordova.getActivity();
+		locationManager = (android.location.LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+
 	}
 
 	private void pauseEventPropagationToDom() {
@@ -645,6 +651,61 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
 				} catch (Exception e) {
 					debugWarn("'isBluetoothEnabled' exception "+e.getMessage());
+					return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+				}
+			}
+		});
+	}
+
+	private void isLocationEnabled(CallbackContext callbackContext) {
+		_handleCallSafely(callbackContext, new ILocationManagerCommand() {
+
+			@Override
+			public PluginResult run() {
+				try {
+					if (!(locationManager instanceof android.location.LocationManager)) {
+						return new PluginResult(PluginResult.Status.ERROR, "Could not find locationAdapter");
+					}
+
+					boolean gps_enabled = false;
+					boolean network_enabled = false;
+
+					try {
+						gps_enabled = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
+					} catch(Exception e) {
+						e.printStackTrace();
+						return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+					}
+
+					try {
+						network_enabled = locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
+					} catch(Exception e) {
+						e.printStackTrace();
+						return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+					}
+
+					if(gps_enabled && network_enabled) {
+
+						return new PluginResult(PluginResult.Status.OK, true);
+
+//						Activity activity = cordova.getActivity();
+//
+//						new AlertDialog.Builder(activity)
+//								.setTitle("Location services are disabled")
+//								.setMessage("Some functionality will be disabled")
+//								.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//									@Override
+//									public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+////							activity.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+//									}
+//								})
+//								.setNegativeButton("Cancel",null)
+//								.show();
+					} else {
+						return new PluginResult(PluginResult.Status.OK, false);
+					}
+				} catch (Exception e) {
+					debugWarn("'isLocationEnabled' exception "+e.getMessage());
 					return new PluginResult(PluginResult.Status.ERROR, e.getMessage());
 				}
 			}
