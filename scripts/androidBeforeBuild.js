@@ -1,10 +1,44 @@
-let fs = require('fs');
+const fs = require('fs');
+const parseString = require('xml2js').parseString;
 
-fs.readdir('platforms/android/app/src/main/java/com/bf', (error, folders) => {
-	if (error) return console.log('processFiles err: ' + error);
+const rootDir = 'platforms/android/app/src/main';
 
-	const bundleId = folders[0];
-	const file = `platforms/android/app/src/main/java/com/bf/${bundleId}/MainActivity.java`;
+const main = () => {
+	fs.readFile(`${rootDir}/AndroidManifest.xml`, 'utf-8', (error, data) => {
+		if (error) return console.log(error);
+
+		getBundleDir(data, (err, bundlePath) => {
+			if (err) return console.log(err);
+
+			modifyMainActivity(bundlePath);
+		});
+	});
+};
+
+/**
+ * @function getBundleDir
+ * takes in utf-8 encoded AndroidManifest.xml
+ * and returns the bundle path
+ * @example output: com/any/appf01234b
+ * @param {String} xml 
+ * @param {Function} callback 
+ */
+const getBundleDir = (xml, callback) => {
+	parseString(xml, {}, (error, data) => {
+		if (error) return console.log(error);
+	
+		if (!data || !data.manifest || !data.manifest.$ || !data.manifest.$.package) {
+			return console.log('no package found', null);
+		}
+
+		let bundle = data.manifest.$.package;
+
+		callback(null, bundle.split('.').join('/'));
+	});
+};
+
+const modifyMainActivity = (bundlePath) => {
+	const file = `${rootDir}/java/${bundlePath}/MainActivity.java`;
 
 	fs.readFile(file, 'utf-8', (err, data) => {
 		if (err) return console.log(err);
@@ -19,4 +53,6 @@ fs.readdir('platforms/android/app/src/main/java/com/bf', (error, folders) => {
 
 		fs.writeFile(file, data, 'utf-8', console.log);
 	});
-});
+};
+
+main();
