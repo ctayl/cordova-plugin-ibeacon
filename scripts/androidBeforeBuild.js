@@ -9,11 +9,13 @@ fs.readdir('platforms/android/app/src/main/java/com/bf', (error, folders) => {
 	fs.readFile(file, 'utf-8', (err, data) => {
 		if (err) return console.log(err);
 
-		data = data.replace('import org.apache.cordova.*;', 'import com.ibeaconbg.www.MainCordovaActivity;');
+		data = data.replace('import org.apache.cordova.*;', 'import com.ibeaconbg.www.MainCordovaActivity;\nimport org.apache.cordova.CordovaActivity;');
 
 		data = data.replace('extends CordovaActivity', 'extends MainCordovaActivity');
 
 		data = data.substring(0, data.indexOf('{')) + '{}';
+
+		data = data + `\nclass fauxCordovaActivity extends CordovaActivity {}`;
 
 		fs.writeFile(file, data, 'utf-8', console.log);
 	});
