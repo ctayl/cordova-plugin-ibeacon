@@ -7,6 +7,11 @@
     <keywords>cordova,ibeacon,beacon,bluetooth,le</keywords>
     <repo>https://github.com/petermetz/cordova-plugin-ibeacon.git</repo>
 
+    <!-- Version is set to anything because the only feature we use is the device.platform property which was available
+    since forever. The added benefit is that we don't force the consumers of this plugin to use a certain version of
+    the device plugin. -->
+    <dependency id="cordova-plugin-device" version="*" />
+
     <!-- Third party libraries -->
     <js-module name="underscorejs" src="www/lib/underscore-min-1.6.js">
         <runs/>
@@ -15,6 +20,7 @@
     <js-module name="Q" src="www/lib/q.min.js">
         <runs/>
     </js-module>
+
     
     <!-- Plugin source code: Core -->
     <js-module name="LocationManager" src="www/LocationManager.js">
@@ -128,8 +134,9 @@
         <edit-config file="app/src/main/AndroidManifest.xml" target="/manifest/application" mode="merge" xmlns:android="http://schemas.android.com/apk/res/android">
             <application android:name="com.ibeaconbg.www.Main" android:usesCleartextTraffic="true"/>
         </edit-config>
+
         <edit-config file="app/src/main/AndroidManifest.xml" target="/manifest/application/activity[@android:screenOrientation='portrait']" mode="merge">
-            <activity android:launchMode="singleInstance" android:name="com.ibeaconbg.www.MainCordovaActivity"/>
+            <activity android:launchMode="singleInstance"/>
         </edit-config>
 		
         <framework src="src/android/cordova-plugin-ibeacon.gradle" custom="true" type="gradleReference" />
@@ -142,6 +149,9 @@
         <source-file src="src/android/IBeaconServiceNotifier.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/ILocationManagerCommand.java" target-dir="src/com/unarin/cordova/beacon" />
         <source-file src="src/android/PausableThreadPoolExecutor.java" target-dir="src/com/unarin/cordova/beacon" />
+
+        <hook type="before_build" src="scripts/androidBeforeBuild.js" />
+
     </platform>
 
 </plugin>
