@@ -944,7 +944,6 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 					@Override
 					public void execute() throws JSONException {
 						startRegionMonitor(this.arguments, this.callbackContext);
-						setPermissionRequestHandler(null);
 					}
 				};
 
@@ -1031,7 +1030,6 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 					@Override
 					public void execute() throws JSONException {
 						startBeaconRanging(this.arguments, this.callbackContext);
-						setPermissionRequestHandler(null);
 					}
 				};
 
