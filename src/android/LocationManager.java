@@ -821,24 +821,37 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 		});
 	}
 
-	private Command permissionRequestHandler = null;
-	private void setPermissionRequestHandler(Command command) {
-		permissionRequestHandler = command;
+	private Command[] permissionRequestQueue = new Command[0];
+	private void queueRequest(Command command) {
+		Command[] oldQueue = permissionRequestQueue;
+		Command[] newQueue = new Command[oldQueue.length + 1];
+
+		int i;
+
+		for (i= 0; i < oldQueue.length; i++) {
+			newQueue[i] = oldQueue[i];
+
+		}
+		newQueue[oldQueue.length] = command;
+		permissionRequestQueue = newQueue;
 	}
+
 
 	public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
 		Log.e(TAG, "onRequestPermissionResult");
 		for (int r : grantResults) {
 			switch (r) {
 				case PackageManager.PERMISSION_DENIED: {
-					setPermissionRequestHandler(null);
+					permissionRequestQueue = new Command[0];
 					break;
 				}
 				case PackageManager.PERMISSION_GRANTED: {
 					Log.e(TAG, "Permission Granted!");
-					if (permissionRequestHandler != null) {
-						permissionRequestHandler.execute();
+					for (Command command : permissionRequestQueue) {
+
+						command.execute();
 					}
+					permissionRequestQueue = new Command[0];
 					break;
 				}
 				default: {
@@ -847,10 +860,8 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 				}
 			}
 		}
-		for (String permission : permissions) {
-			Log.e(TAG, permission);
-		}
 	}
+
 
 	private static final String ACCESS_FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
 	private static final String ACCESS_BACKGROUND_LOCATION = Manifest.permission.ACCESS_BACKGROUND_LOCATION;
@@ -864,7 +875,7 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 				return;
 			}
 
-			setPermissionRequestHandler(command);
+			queueRequest(command);
 
 			String[] permissions = { ACCESS_FINE_LOCATION, ACCESS_BACKGROUND_LOCATION };
 			cordova.requestPermissions(this, PERMISSION_ALL, permissions);
