@@ -684,19 +684,19 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 					if(gps_enabled && network_enabled) {
 
 
-						Activity activity = cordova.getActivity();
+						// Activity activity = cordova.getActivity();
 
-						new AlertDialog.Builder(activity)
-								.setTitle("Location services are disabled")
-								.setMessage("Some functionality will be disabled")
-								.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-										//							activity.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-									}
-								})
-								.setNegativeButton("Cancel",null)
-								.show();
+						// new AlertDialog.Builder(activity)
+						// 		.setTitle("Location services are disabled")
+						// 		.setMessage("Some functionality will be disabled")
+						// 		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+						// 			@Override
+						// 			public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+						// 				//							activity.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+						// 			}
+						// 		})
+						// 		.setNegativeButton("Cancel",null)
+						// 		.show();
 
 						return new PluginResult(PluginResult.Status.OK, true);
 
@@ -877,14 +877,6 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
 
 	private Boolean initialized = false;
-
-//	public interface Command {
-//		public void execute(JSONObject arguments, final CallbackContext callbackContext) throws JSONException;
-//	}
-//
-//	public class OriginalCommand implements Command {
-//		public void execute(final JSONObject arguments, final CallbackContext callbackContext) throws JSONException {}
-//	}
 
 	public interface CommandInterface {
 		public void execute() throws JSONException;
@@ -1141,15 +1133,6 @@ public class LocationManager extends CordovaPlugin implements BeaconConsumer {
 
 			@Override
 			public PluginResult run() {
-
-				final boolean requestPermission = sInstance.preferences.getBoolean(
-						REQUEST_BT_PERMISSION_NAME, DEFAULT_REQUEST_BT_PERMISSION
-				);
-
-				if (requestPermission) {
-					tryToRequestMarshmallowLocationPermission();
-				}
-
 				return new PluginResult(PluginResult.Status.OK);
 			}
 		});
